@@ -14,5 +14,5 @@ if [ -d "$SITEPKG" ]; then
     echo "$SITEPKG" > "$VENV_PATH/lib/python${PYTHON_VERSION}/site-packages/baseenv_link.pth"
     echo "Linked baseenv-${PYTHON_VERSION} Python packages."
 else
-    echo "kWARNING: baseenv not found for Python $PYTHON_VERSION"
+    echo "WARNING: baseenv not found for Python $PYTHON_VERSION"
 fi

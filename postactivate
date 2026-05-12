@@ -1,6 +1,13 @@
 #!/bin/bash
 # This hook is run after every virtualenv is activated.
 
+# __git_ps1 comes from git-sh-prompt (e.g. /usr/lib/git-core/git-sh-prompt or
+# /etc/bash_completion.d/git-prompt). Provide a silent no-op so the PS1
+# assignment below works even when git-prompt is not sourced.
+if ! declare -f __git_ps1 > /dev/null 2>&1; then
+    __git_ps1() { :; }
+fi
+
 # Add the name of the current virtual environment to the command line prompt
 if [ "$LOGNAME" = "root" ]; then
   PS1='$HOST ROOT (`basename $VIRTUAL_ENV`$(__git_ps1 " (on %s)")) ${PWD}>'

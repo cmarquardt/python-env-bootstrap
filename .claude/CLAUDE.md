@@ -10,7 +10,7 @@ This toolkit creates shared Python virtual environments (`baseenv`) for multiple
 
 ### Core Components
 
-1. **baseenv-X.Y** (`/opt/python/virtualenvs/baseenv-X.Y/`): Shared virtual environment per Python version containing common packages. Created with `--system-site-packages` flag and made world-readable but not writable.
+1. **baseenv-X.Y** (`/opt/python/virtualenvs/baseenv-X.Y/`): Shared virtual environment per Python version containing common packages. Created with `--system-site-packages` flag and made world-readable (`a+rx`). Write-protection (`a-w`) is intentionally left off so the baseenv can be updated without elevated privileges over time.
 
 2. **virtualenvwrapper hooks**: Three bash scripts that automate baseenv integration:
    - `postmkvirtualenv`: Runs after creating new virtualenv. Installs pytest and calls `bootstrap_virtualenv.sh` to link baseenv packages
@@ -38,9 +38,9 @@ Create a baseenv for a Python version (requires sudo):
 sudo ./baseenv_setup.sh 3.13
 ```
 
-Install virtualenvwrapper hooks (one-time setup):
+Install virtualenvwrapper hooks (one-time setup). All four files must land in `$WORKON_HOME` — `postmkvirtualenv` calls `$WORKON_HOME/bootstrap_virtualenv.sh` directly:
 ```bash
-cp postactivate predeactivate postmkvirtualenv ${WORKON_HOME}
+cp postactivate predeactivate postmkvirtualenv bootstrap_virtualenv.sh ${WORKON_HOME}
 chmod +x ${WORKON_HOME}/*
 ```
 
@@ -58,6 +58,6 @@ Note: The baseenv directory is made world-readable so all users can access it.
 
 ## Important Notes
 
-- Hook paths: The `postmkvirtualenv` script hardcodes the bootstrap script path as `~/Src/python/python-env-bootstrap/bootstrap_virtualenv.sh` at line 20. This path must match the actual clone location.
+- Hook paths: `postmkvirtualenv` calls `$WORKON_HOME/bootstrap_virtualenv.sh`. The repo clone location is irrelevant as long as all four files are copied to `$WORKON_HOME` during installation.
 - Python version detection: All scripts dynamically detect the Python version using `sys.version_info` to ensure correct baseenv matching.
 - R integration: The hooks also set up R library paths (`R_LIBS`) for virtualenvs that use R packages.

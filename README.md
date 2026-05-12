@@ -10,7 +10,18 @@ This toolkit sets up shared Python virtual environments for multiple Python vers
 
 ## How It Works
 
-The system creates shared base environments (`baseenv-X.Y`) that contain commonly-used packages like pandas, netCDF4, h5py, jupyter, etc. These packages are automatically available in all user-created virtualenvs through `.pth` linking.
+The system creates shared base environments (`baseenv-X.Y`) that contain commonly-used packages. The default set installed by `baseenv_setup.sh` is:
+
+| Package | Purpose |
+|---|---|
+| pandas | data analysis |
+| netCDF4 | NetCDF file I/O |
+| h5py | HDF5 file I/O |
+| eccodes | ECMWF GRIB/BUFR file I/O |
+| jupyter | interactive notebooks |
+| packaging, iniconfig, pluggy | build/test infrastructure |
+
+Edit the `pip install` line in `baseenv_setup.sh` to customise this list for your site. These packages are automatically available in all user-created virtualenvs through `.pth` linking.
 
 ### Architecture
 
@@ -36,9 +47,9 @@ When you run `mkvirtualenv myproject`:
 6. When activated, baseenv CLI tools (jupyter, ipython, etc.) are added to PATH
 
 ## Setup
-1. Clone the repo:
+1. Clone the repo anywhere you like:
    ```bash
-   git clone <repo-url> ~/python-env-bootstrap
+   git clone <repo-url> ~/Src/python/python-env-bootstrap
    ```
 
 2. Install Python versions (e.g., 3.13) and create the base environment:
@@ -46,13 +57,14 @@ When you run `mkvirtualenv myproject`:
    sudo ./baseenv_setup.sh 3.13
    ```
 
-3. Set up hooks:
+3. Set up hooks (copy all four files — `bootstrap_virtualenv.sh` must live in
+   `$WORKON_HOME` alongside the other hooks):
    ```bash
-   cp postactivate predeactivate postmkvirtualenv ${WORKON_HOME}
+   cp postactivate predeactivate postmkvirtualenv bootstrap_virtualenv.sh ${WORKON_HOME}
    chmod +x ${WORKON_HOME}/*
    ```
 
-From then on, virtual environments created with `mkvirtualenv` will include the packages in the `baseenv`, and the PATH inside the virtual environemnt will also be updated to allow the use of CLI tools in `baseenv`.
+From then on, virtual environments created with `mkvirtualenv` will include the packages in the `baseenv`, and the PATH inside the virtual environment will also be updated to allow the use of CLI tools in `baseenv`.
 
 ## Usage
 
@@ -137,13 +149,13 @@ sudo ./baseenv_setup.sh 3.14
 
 ## Important Notes
 
-- **Hook Path Configuration**: The `postmkvirtualenv` script contains a hardcoded path to `bootstrap_virtualenv.sh`. If you clone this repo to a location other than `~/Src/python/python-env-bootstrap/`, you must update line 20 in the `postmkvirtualenv` file.
-
 - **Python Version Detection**: All scripts automatically detect the Python version to ensure the correct baseenv is linked.
 
-- **Permissions**: The baseenv directories are made world-readable (`a+rx`) so all users on the system can access the shared packages.
+- **Permissions**: The baseenv directories are made world-readable and world-writable (`a+rx`) so all users on the system can access and update the shared packages. This is intentional — it allows the baseenv to be updated over time without `sudo`. If you want to lock the baseenv against accidental changes you can run `sudo chmod -R a-w /opt/python/virtualenvs/baseenv-X.Y` after setup, but you will then need elevated privileges to install or upgrade packages in it.
 
-- **R Integration**: The hooks also configure R library paths (`R_LIBS`) for virtualenvs that use R packages.
+- **Shell prompt**: `postactivate` customises `PS1` to show the active virtualenv and current git branch. The git branch display uses `__git_ps1` from `git-sh-prompt`. If that is not sourced in your shell, it is silently skipped — the virtualenv name still appears in the prompt.
+
+- **R Integration**: The hooks also configure R library paths (`R_LIBS`) for virtualenvs that use R packages. The directory `$VIRTUAL_ENV/lib/R/library` is created automatically on first activation.
 
 - **Isolation**: While baseenv packages are available, you can still override them by installing different versions in your project virtualenv. Project-specific packages take precedence.
 
