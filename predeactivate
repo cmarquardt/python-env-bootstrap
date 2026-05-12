@@ -1,0 +1,15 @@
+#!/bin/bash
+# This hook is run before every virtualenv is deactivated.
+
+# Remove PATH to CLI tools from the baseenv
+PYTHON_VERSION=$($VIRTUAL_ENV/bin/python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+BASEENV_BIN="/opt/python/virtualenvs/baseenv-${PYTHON_VERSION}/bin"
+
+# Remove baseenv path if it's at the end of PATH
+if [[ "$PATH" == *":$BASEENV_BIN" ]]; then
+    export PATH="${PATH%:$BASEENV_BIN}"
+    echo "[baseenv-${PYTHON_VERSION}] PATH cleaned"
+fi
+
+# Remove the R library path
+unset R_LIBS

@@ -1,0 +1,171 @@
+# Python Environment Bootstrap (Multi-Version + Automation)
+
+This toolkit sets up shared Python virtual environments for multiple Python versions and integrates them into user virtualenvs using `virtualenvwrapper`.
+
+## Features
+- Shared `baseenv` per Python version (e.g., 3.12, 3.13, ...)
+- CLI tool exposure via `PATH`
+- Global hooks for seamless integration upon virtual environment creation with `virtualenvwrapper`
+- Optional automation via Ansible, Docker, and GitHub Actions
+
+## How It Works
+
+The system creates shared base environments (`baseenv-X.Y`) that contain commonly-used packages like pandas, netCDF4, h5py, jupyter, etc. These packages are automatically available in all user-created virtualenvs through `.pth` linking.
+
+### Architecture
+
+**Core Components:**
+
+1. **baseenv-X.Y** (`/opt/python/virtualenvs/baseenv-X.Y/`): Shared virtual environment per Python version containing common packages. Created with `--system-site-packages` flag and made world-readable.
+
+2. **virtualenvwrapper hooks**: Three bash scripts that automate baseenv integration:
+   - `postmkvirtualenv`: Runs after creating new virtualenv, installs pytest and links baseenv packages
+   - `postactivate`: Runs when activating any virtualenv, adds baseenv CLI tools to PATH
+   - `predeactivate`: Runs before deactivating, cleans up PATH and environment variables
+
+3. **bootstrap_virtualenv.sh**: Creates a `.pth` file in the virtualenv's site-packages that points to baseenv's site-packages, making all baseenv packages importable
+
+### Workflow
+
+When you run `mkvirtualenv myproject`:
+1. Standard virtualenv is created
+2. `postmkvirtualenv` hook executes automatically
+3. `bootstrap_virtualenv.sh` detects Python version (e.g., 3.13)
+4. Creates `baseenv_link.pth` pointing to `/opt/python/virtualenvs/baseenv-3.13/lib/python3.13/site-packages`
+5. All baseenv packages become available in your `myproject` virtualenv
+6. When activated, baseenv CLI tools (jupyter, ipython, etc.) are added to PATH
+
+## Setup
+1. Clone the repo:
+   ```bash
+   git clone <repo-url> ~/python-env-bootstrap
+   ```
+
+2. Install Python versions (e.g., 3.13) and create the base environment:
+   ```bash
+   sudo ./baseenv_setup.sh 3.13
+   ```
+
+3. Set up hooks:
+   ```bash
+   cp postactivate predeactivate postmkvirtualenv ${WORKON_HOME}
+   chmod +x ${WORKON_HOME}/*
+   ```
+
+From then on, virtual environments created with `mkvirtualenv` will include the packages in the `baseenv`, and the PATH inside the virtual environemnt will also be updated to allow the use of CLI tools in `baseenv`.
+
+## Usage
+
+### Creating a New Virtual Environment
+
+After setup is complete, create virtualenvs as usual with `virtualenvwrapper`:
+
+```bash
+mkvirtualenv myproject
+```
+
+The new environment will automatically:
+- Include all packages from the matching baseenv
+- Have access to baseenv CLI tools (jupyter, ipython, pytest, etc.)
+- Still allow you to install additional packages specific to your project
+
+### Using the Virtual Environment
+
+```bash
+# Activate your environment
+workon myproject
+
+# All baseenv packages are available
+python -c "import pandas; print(pandas.__version__)"
+
+# CLI tools from baseenv are in your PATH
+jupyter notebook
+
+# Install project-specific packages
+pip install requests flask
+
+# Deactivate when done
+deactivate
+```
+
+### Verifying baseenv Integration
+
+To check if baseenv is properly linked to your virtualenv:
+
+```bash
+workon myproject
+python -c "import sys; print([p for p in sys.path if 'baseenv' in p])"
+```
+
+You should see the baseenv site-packages path listed.
+
+## Managing baseenv Packages
+
+### Adding or Updating Packages in baseenv
+
+To modify the shared baseenv (requires sudo or appropriate permissions):
+
+```bash
+# Activate the baseenv directly
+source /opt/python/virtualenvs/baseenv-3.13/bin/activate
+
+# Install or update packages
+pip install <new-package>
+pip install --upgrade <existing-package>
+
+# Save the updated requirements
+pip freeze > /opt/python/virtualenvs/baseenv-3.13/baseenv_requirements.txt
+
+# Ensure permissions are correct (world-readable)
+sudo chmod -R a+rx /opt/python/virtualenvs/baseenv-3.13
+
+# Deactivate
+deactivate
+```
+
+All existing and new virtualenvs will immediately have access to the updated packages.
+
+### Creating baseenv for Additional Python Versions
+
+To support a new Python version:
+
+```bash
+# Install the Python version first (e.g., via pyenv, apt, brew, etc.)
+# Then create its baseenv:
+sudo ./baseenv_setup.sh 3.14
+```
+
+## Important Notes
+
+- **Hook Path Configuration**: The `postmkvirtualenv` script contains a hardcoded path to `bootstrap_virtualenv.sh`. If you clone this repo to a location other than `~/Src/python/python-env-bootstrap/`, you must update line 20 in the `postmkvirtualenv` file.
+
+- **Python Version Detection**: All scripts automatically detect the Python version to ensure the correct baseenv is linked.
+
+- **Permissions**: The baseenv directories are made world-readable (`a+rx`) so all users on the system can access the shared packages.
+
+- **R Integration**: The hooks also configure R library paths (`R_LIBS`) for virtualenvs that use R packages.
+
+- **Isolation**: While baseenv packages are available, you can still override them by installing different versions in your project virtualenv. Project-specific packages take precedence.
+
+## Docker
+
+*This has not been tested...*
+
+Build a dev container:
+
+```bash
+docker build -t python-bootstrap .
+docker run -it python-bootstrap
+```
+
+## GitHub Actions
+
+*This has not been tested...*
+
+This repo includes a workflow to test bootstrap setup across multiple Python versions.
+
+## Ansible
+
+*This has not been tested either...*
+
+See `ansible/bootstrap.yml` for deployment instructions.

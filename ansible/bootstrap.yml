@@ -1,0 +1,33 @@
+---
+- name: Deploy base Python environments
+  hosts: all
+  become: yes
+
+  vars:
+    python_versions:
+      - "3.10"
+      - "3.11"
+
+  tasks:
+    - name: Ensure required packages are installed
+      apt:
+        name: "python{{ item }},python{{ item }}-venv,python3-pip"
+        state: present
+      loop: "{{ python_versions }}"
+      when: ansible_os_family == 'Debian'
+
+    - name: Create base environments
+      shell: "/home/{{ ansible_user }}/python-env-bootstrap/baseenv_setup.sh {{ item }}"
+      args:
+        creates: "/opt/python-envs/baseenv-{{ item }}"
+      loop: "{{ python_versions }}"
+
+    - name: Deploy virtualenvwrapper global hooks
+      copy:
+        src: "{{ item }}"
+        dest: "/home/{{ ansible_user }}/.virtualenvs/{{ item | basename }}"
+        mode: '0755'
+      with_fileglob:
+        - "/home/{{ ansible_user }}/python-env-bootstrap/postactivate"
+        - "/home/{{ ansible_user }}/python-env-bootstrap/predeactivate"
+        - "/home/{{ ansible_user }}/python-env-bootstrap/postmkvirtualenv"

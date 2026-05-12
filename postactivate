@@ -1,0 +1,25 @@
+#!/bin/bash
+# This hook is run after every virtualenv is activated.
+
+# Add the name of the current virtual environment to the command line prompt
+if [ "$LOGNAME" = "root" ]; then
+  PS1='$HOST ROOT (`basename $VIRTUAL_ENV`$(__git_ps1 " (on %s)")) ${PWD}>'
+else
+  PS1='$HOST (`basename $VIRTUAL_ENV`$(__git_ps1 " (on %s)")) ${PWD}>'
+fi
+
+# Add PATH to CLI tools from the baseenv
+PYTHON_VERSION=$($VIRTUAL_ENV/bin/python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+BASEENV_BIN="/opt/python/virtualenvs/baseenv-${PYTHON_VERSION}/bin"
+
+if [[ -d "$BASEENV_BIN" ]]; then
+    export PATH="$PATH:$BASEENV_BIN"
+    echo "[baseenv-${PYTHON_VERSION}] CLI tools added to PATH"
+fi
+
+# Add an R library path to the environment and make sure the directory exists
+export R_LIBS="$VIRTUAL_ENV/lib/R/library"
+
+if [ ! -d $R_LIBS ]; then
+  mkdir -p $R_LIBS
+fi
