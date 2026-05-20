@@ -29,10 +29,13 @@ pip install --upgrade pip
 # to the baseenv via a .pth file.
 pip install --ignore-installed packaging iniconfig pluggy pandas netCDF4 h5py eccodes jupyter \
     astropy pyarrow sqlalchemy
-# psycopg2 links against OpenSSL; on macOS/Homebrew libssl is not on the
-# default linker path so we pass it explicitly (brew --prefix handles both
-# /opt/homebrew on Apple Silicon and /usr/local on Intel).
+# psycopg2 needs pg_config (from libpq) and links against OpenSSL.  Both are
+# keg-only on Homebrew and not on the default PATH / linker search path.
 OPENSSL_PREFIX=$(brew --prefix openssl@3 2>/dev/null || true)
+LIBPQ_PREFIX=$(brew --prefix libpq 2>/dev/null || true)
+if [ -n "$LIBPQ_PREFIX" ]; then
+    export PATH="${LIBPQ_PREFIX}/bin:$PATH"
+fi
 if [ -n "$OPENSSL_PREFIX" ]; then
     LDFLAGS="-L${OPENSSL_PREFIX}/lib" CPPFLAGS="-I${OPENSSL_PREFIX}/include" \
         pip install --ignore-installed psycopg2
