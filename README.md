@@ -69,14 +69,12 @@ When you run `mkvirtualenv myproject`:
    chmod +x ${WORKON_HOME}/*
    ```
 
-4. Add the following to your shell startup file (`.bashrc`, `.zshrc`, etc.) so that every
-   virtualenv created with `mkvirtualenv` includes system-level packages:
+4. **Optional but recommended** — add the following to your shell startup file
+   (`.bashrc`, `.zshrc`, etc.) to make system-level packages visible in every virtualenv:
    ```bash
    export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--system-site-packages'
    ```
-   This is required for the `.pth` mechanism to work correctly: the baseenv holds the
-   explicitly managed packages; transitive dependencies and system-level packages
-   (e.g. GDAL, PyQt6 installed via Homebrew) are made visible through `--system-site-packages`.
+   See [System packages and the `.pth` mechanism](#system-packages-and-the-pth-mechanism) below for the full trade-off.
 
 From then on, virtual environments created with `mkvirtualenv` will include the packages in the `baseenv`, and the PATH inside the virtual environment will also be updated to allow the use of CLI tools in `baseenv`.
 
@@ -165,6 +163,33 @@ To support a new Python version:
 # Then create its baseenv:
 sudo ./baseenv_setup.sh 3.14
 ```
+
+## System packages and the `.pth` mechanism
+
+The `.pth` file written by `bootstrap_virtualenv.sh` adds the baseenv's own `site-packages`
+directory to `sys.path`. This exposes only the packages explicitly installed *into* the
+baseenv — it does **not** carry through the baseenv's own `--system-site-packages` flag.
+
+This means how much a user virtualenv can see depends on how it was created:
+
+| User virtualenv created with | Sees baseenv packages | Sees system packages (GDAL, PyQt6, …) |
+|---|:---:|:---:|
+| default (no flag) | ✓ | ✗ |
+| `--system-site-packages` | ✓ | ✓ |
+
+Setting `VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--system-site-packages'` in your shell makes
+every `mkvirtualenv` call use the second row automatically. This is the recommended setup
+when your Python installation (e.g. Homebrew) provides system-level packages you want
+universally available — the baseenv then adds a curated, versioned layer on top.
+
+If you prefer lean virtualenvs by default, omit the env var. You can still opt in per-venv:
+
+```bash
+mkvirtualenv --system-site-packages myproject
+```
+
+Packages not explicitly installed in the baseenv (e.g. GDAL, PyQt6 from Homebrew) will
+only be visible in virtualenvs that have `--system-site-packages`.
 
 ## Important Notes
 
