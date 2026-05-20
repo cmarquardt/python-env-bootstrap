@@ -2,11 +2,12 @@
 
 This toolkit sets up shared Python virtual environments for multiple Python versions and integrates them into user virtualenvs using `virtualenvwrapper`.
 
+> **Platform**: tested on macOS with Homebrew. Linux should work with minor path adjustments; Docker and Ansible stubs exist but are untested.
+
 ## Features
-- Shared `baseenv` per Python version (e.g., 3.12, 3.13, ...)
+- Shared `baseenv` per Python version (e.g., 3.14)
 - CLI tool exposure via `PATH`
 - Global hooks for seamless integration upon virtual environment creation with `virtualenvwrapper`
-- Optional automation via Ansible, Docker, and GitHub Actions
 
 ## How It Works
 
@@ -45,8 +46,8 @@ Edit the `pip install` line in `baseenv_setup.sh` to customise this list for you
 When you run `mkvirtualenv myproject`:
 1. Standard virtualenv is created
 2. `postmkvirtualenv` hook executes automatically
-3. `bootstrap_virtualenv.sh` detects Python version (e.g., 3.13)
-4. Creates `baseenv_link.pth` pointing to `/opt/python/virtualenvs/baseenv-3.13/lib/python3.13/site-packages`
+3. `bootstrap_virtualenv.sh` detects Python version (e.g., 3.14)
+4. Creates `baseenv_link.pth` pointing to `/opt/python/virtualenvs/baseenv-3.14/lib/python3.14/site-packages`
 5. All baseenv packages become available in your `myproject` virtualenv
 6. When activated, baseenv CLI tools (jupyter, ipython, etc.) are added to PATH
 
@@ -56,9 +57,9 @@ When you run `mkvirtualenv myproject`:
    git clone <repo-url> ~/Src/python/python-env-bootstrap
    ```
 
-2. Install Python versions (e.g., 3.13) and create the base environment:
+2. Install Python 3.14 (e.g. via `brew install python@3.14`) and create the base environment:
    ```bash
-   sudo ./baseenv_setup.sh 3.13
+   sudo ./baseenv_setup.sh 3.14
    ```
 
 3. Set up hooks (copy all four files — `bootstrap_virtualenv.sh` must live in
@@ -123,17 +124,17 @@ To modify the shared baseenv (requires sudo or appropriate permissions):
 
 ```bash
 # Activate the baseenv directly
-source /opt/python/virtualenvs/baseenv-3.13/bin/activate
+source /opt/python/virtualenvs/baseenv-3.14/bin/activate
 
 # Install or update packages
 pip install <new-package>
 pip install --upgrade <existing-package>
 
 # Save the updated requirements
-pip freeze > /opt/python/virtualenvs/baseenv-3.13/baseenv_requirements.txt
+pip freeze > /opt/python/virtualenvs/baseenv-3.14/baseenv_requirements.txt
 
 # Ensure permissions are correct (world-readable)
-sudo chmod -R a+rx /opt/python/virtualenvs/baseenv-3.13
+chmod -R a+rx /opt/python/virtualenvs/baseenv-3.14
 
 # Deactivate
 deactivate
@@ -168,25 +169,6 @@ sudo ./baseenv_setup.sh 3.14
 
 - **Isolation**: While baseenv packages are available, you can still override them by installing different versions in your project virtualenv. Project-specific packages take precedence.
 
-## Docker
+## Other Integrations
 
-*This has not been tested...*
-
-Build a dev container:
-
-```bash
-docker build -t python-bootstrap .
-docker run -it python-bootstrap
-```
-
-## GitHub Actions
-
-*This has not been tested...*
-
-This repo includes a workflow to test bootstrap setup across multiple Python versions.
-
-## Ansible
-
-*This has not been tested either...*
-
-See `ansible/bootstrap.yml` for deployment instructions.
+Stubs for Docker (`Dockerfile`), Ansible (`ansible/bootstrap.yml`), and GitHub Actions (`.github/workflows/`) exist in the repo but have not been tested. Contributions welcome.
