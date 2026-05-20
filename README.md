@@ -69,6 +69,15 @@ When you run `mkvirtualenv myproject`:
    chmod +x ${WORKON_HOME}/*
    ```
 
+4. Add the following to your shell startup file (`.bashrc`, `.zshrc`, etc.) so that every
+   virtualenv created with `mkvirtualenv` includes system-level packages:
+   ```bash
+   export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--system-site-packages'
+   ```
+   This is required for the `.pth` mechanism to work correctly: the baseenv holds the
+   explicitly managed packages; transitive dependencies and system-level packages
+   (e.g. GDAL, PyQt6 installed via Homebrew) are made visible through `--system-site-packages`.
+
 From then on, virtual environments created with `mkvirtualenv` will include the packages in the `baseenv`, and the PATH inside the virtual environment will also be updated to allow the use of CLI tools in `baseenv`.
 
 ## Usage

@@ -43,7 +43,7 @@ jobs:
 
       - name: Create and bootstrap test virtualenv
         run: |
-          virtualenv --python=python3.14 /tmp/test-venv
+          virtualenv --python=python3.14 --system-site-packages /tmp/test-venv
           VIRTUAL_ENV=/tmp/test-venv bash bootstrap_virtualenv.sh
 
       - name: Verify package imports

@@ -22,12 +22,7 @@ virtualenv --python="$PYTHON_PATH" --system-site-packages "$BASEENV_DIR"
 source "$BASEENV_DIR/bin/activate"
 pip install --upgrade pip
 #pip install numpy pandas scipy matplotlib pillow netCDF4 h5py jupyter
-# --ignore-installed ensures all packages and their transitive dependencies land
-# in the baseenv's own site-packages.  Without this, pip may satisfy deps from
-# the system site-packages (visible here via --system-site-packages) and skip
-# installing them locally, making them invisible to user virtualenvs that link
-# to the baseenv via a .pth file.
-pip install --ignore-installed packaging iniconfig pluggy pandas netCDF4 h5py eccodes jupyter \
+pip install --upgrade packaging iniconfig pluggy pandas netCDF4 h5py eccodes jupyter \
     astropy pyarrow sqlalchemy
 # psycopg2 needs pg_config (from libpq) and links against OpenSSL.  Both are
 # keg-only on Homebrew and not on the default PATH / linker search path.
@@ -38,9 +33,9 @@ if [ -n "$LIBPQ_PREFIX" ]; then
 fi
 if [ -n "$OPENSSL_PREFIX" ]; then
     LDFLAGS="-L${OPENSSL_PREFIX}/lib" CPPFLAGS="-I${OPENSSL_PREFIX}/include" \
-        pip install --ignore-installed psycopg2
+        pip install --upgrade psycopg2
 else
-    pip install --ignore-installed psycopg2
+    pip install --upgrade psycopg2
 fi
 pip freeze > "$BASEENV_DIR/baseenv_requirements.txt"
 
