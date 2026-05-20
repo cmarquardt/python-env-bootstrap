@@ -22,10 +22,12 @@ virtualenv --python="$PYTHON_PATH" --system-site-packages "$BASEENV_DIR"
 source "$BASEENV_DIR/bin/activate"
 pip install --upgrade pip
 #pip install numpy pandas scipy matplotlib pillow netCDF4 h5py jupyter
-# --upgrade ensures all deps are installed into the baseenv's own site-packages
-# and not silently satisfied by system packages (which aren't visible to user
-# virtualenvs that link here via .pth).
-pip install --upgrade packaging iniconfig pluggy pandas netCDF4 h5py eccodes jupyter \
+# --ignore-installed ensures all packages and their transitive dependencies land
+# in the baseenv's own site-packages.  Without this, pip may satisfy deps from
+# the system site-packages (visible here via --system-site-packages) and skip
+# installing them locally, making them invisible to user virtualenvs that link
+# to the baseenv via a .pth file.
+pip install --ignore-installed packaging iniconfig pluggy pandas netCDF4 h5py eccodes jupyter \
     astropy pyarrow sqlalchemy
 # psycopg2 links against OpenSSL; on macOS/Homebrew libssl is not on the
 # default linker path so we pass it explicitly (brew --prefix handles both
@@ -33,9 +35,9 @@ pip install --upgrade packaging iniconfig pluggy pandas netCDF4 h5py eccodes jup
 OPENSSL_PREFIX=$(brew --prefix openssl@3 2>/dev/null || true)
 if [ -n "$OPENSSL_PREFIX" ]; then
     LDFLAGS="-L${OPENSSL_PREFIX}/lib" CPPFLAGS="-I${OPENSSL_PREFIX}/include" \
-        pip install psycopg2
+        pip install --ignore-installed psycopg2
 else
-    pip install psycopg2
+    pip install --ignore-installed psycopg2
 fi
 pip freeze > "$BASEENV_DIR/baseenv_requirements.txt"
 
