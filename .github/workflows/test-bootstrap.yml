@@ -22,7 +22,10 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Install system dependencies
-        run: brew install python@3.14 openssl@3 libpq hdf5 netcdf
+        run: |
+          for pkg in python@3.14 openssl@3 libpq hdf5 netcdf; do
+            brew list "$pkg" &>/dev/null || brew install "$pkg"
+          done
 
       - name: Add Python 3.14 to PATH
         run: echo "$(brew --prefix python@3.14)/bin" >> "$GITHUB_PATH"
