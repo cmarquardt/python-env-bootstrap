@@ -12,14 +12,18 @@ This toolkit sets up shared Python virtual environments for multiple Python vers
 
 The system creates shared base environments (`baseenv-X.Y`) that contain commonly-used packages. The default set installed by `baseenv_setup.sh` is:
 
-| Package | Purpose |
-|---|---|
-| pandas | data analysis |
-| netCDF4 | NetCDF file I/O |
-| h5py | HDF5 file I/O |
-| eccodes | ECMWF GRIB/BUFR file I/O |
-| jupyter | interactive notebooks |
-| packaging, iniconfig, pluggy | build/test infrastructure |
+| Package | Purpose | Since |
+|---|---|---|
+| pandas | data analysis | all |
+| netCDF4 | NetCDF file I/O | all |
+| h5py | HDF5 file I/O | all |
+| eccodes | ECMWF GRIB/BUFR file I/O | all |
+| jupyter | interactive notebooks | all |
+| packaging, iniconfig, pluggy | build/test infrastructure | all |
+| astropy | astronomy / time / coordinates | 3.14+ |
+| pyarrow | Arrow / Parquet columnar I/O | 3.14+ |
+| sqlalchemy | SQL toolkit and ORM | 3.14+ |
+| psycopg2 | PostgreSQL adapter | 3.14+ |
 
 Edit the `pip install` line in `baseenv_setup.sh` to customise this list for your site. These packages are automatically available in all user-created virtualenvs through `.pth` linking.
 

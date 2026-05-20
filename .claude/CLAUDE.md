@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This toolkit creates shared Python virtual environments (`baseenv`) for multiple Python versions and integrates them into user virtualenvs via `virtualenvwrapper` hooks. The key concept is that shared base environments contain commonly-used packages (pandas, netCDF4, h5py, jupyter, etc.) that are automatically available in all user-created virtualenvs through `.pth` linking.
+This toolkit creates shared Python virtual environments (`baseenv`) for multiple Python versions and integrates them into user virtualenvs via `virtualenvwrapper` hooks. The key concept is that shared base environments contain commonly-used packages (pandas, netCDF4, h5py, eccodes, jupyter, astropy, pyarrow, sqlalchemy, psycopg2, etc.) that are automatically available in all user-created virtualenvs through `.pth` linking. astropy, pyarrow, sqlalchemy, and psycopg2 were added in baseenv-3.14.
 
 ## Architecture
 
