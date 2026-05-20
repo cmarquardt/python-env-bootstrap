@@ -24,8 +24,8 @@ This toolkit creates shared Python virtual environments (`baseenv`) for multiple
 When a user runs `mkvirtualenv myproject`:
 1. Standard virtualenv is created
 2. `postmkvirtualenv` hook executes
-3. `bootstrap_virtualenv.sh` detects Python version (e.g., 3.13)
-4. Creates `baseenv_link.pth` pointing to `/opt/python/virtualenvs/baseenv-3.13/lib/python3.13/site-packages`
+3. `bootstrap_virtualenv.sh` detects Python version (e.g., 3.14)
+4. Creates `baseenv_link.pth` pointing to `/opt/python/virtualenvs/baseenv-3.14/lib/python3.14/site-packages`
 5. All baseenv packages become available in `myproject` virtualenv
 6. When activated, baseenv CLI tools (jupyter, etc.) are added to PATH
 
@@ -35,7 +35,7 @@ When a user runs `mkvirtualenv myproject`:
 
 Create a baseenv for a Python version (requires sudo):
 ```bash
-sudo ./baseenv_setup.sh 3.13
+sudo ./baseenv_setup.sh 3.14
 ```
 
 Install virtualenvwrapper hooks (one-time setup). All four files must land in `$WORKON_HOME` — `postmkvirtualenv` calls `$WORKON_HOME/bootstrap_virtualenv.sh` directly:
@@ -48,13 +48,18 @@ chmod +x ${WORKON_HOME}/*
 
 To add/update packages in the baseenv:
 ```bash
-source /opt/python/virtualenvs/baseenv-3.13/bin/activate
+source /opt/python/virtualenvs/baseenv-3.14/bin/activate
 pip install <new-package>
-pip freeze > /opt/python/virtualenvs/baseenv-3.13/baseenv_requirements.txt
-chmod -R a+rx /opt/python/virtualenvs/baseenv-3.13
+pip freeze > /opt/python/virtualenvs/baseenv-3.14/baseenv_requirements.txt
+chmod -R a+rx /opt/python/virtualenvs/baseenv-3.14
 ```
 
 Note: The baseenv directory is made world-readable so all users can access it.
+
+**macOS/Homebrew — packages that link against OpenSSL** (e.g. `psycopg2`, `cryptography`): Homebrew's OpenSSL is not on the system linker path, so the build will fail with `ld: library 'ssl' not found`. Pass the paths explicitly:
+```bash
+LDFLAGS="-L/opt/brew/opt/openssl@3/lib" CPPFLAGS="-I/opt/brew/opt/openssl@3/include" pip install psycopg2
+```
 
 ## Important Notes
 
