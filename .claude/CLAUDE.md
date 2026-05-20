@@ -58,7 +58,7 @@ Note: The baseenv directory is made world-readable so all users can access it.
 
 **macOS/Homebrew — packages that link against OpenSSL** (e.g. `psycopg2`, `cryptography`): Homebrew's OpenSSL is not on the system linker path, so the build will fail with `ld: library 'ssl' not found`. Pass the paths explicitly:
 ```bash
-LDFLAGS="-L/opt/brew/opt/openssl@3/lib" CPPFLAGS="-I/opt/brew/opt/openssl@3/include" pip install psycopg2
+LDFLAGS="-L$(brew --prefix openssl@3)/lib" CPPFLAGS="-I$(brew --prefix openssl@3)/include" pip install psycopg2
 ```
 
 ## Important Notes

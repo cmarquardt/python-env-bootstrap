@@ -1,25 +1,51 @@
-name: Test Bootstrap
+name: CI
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.9, 3.10, 3.11]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: shellcheck
+        run: shellcheck *.sh
+
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: brew install python@3.14 openssl@3 libpq hdf5 netcdf
+
+      - name: Add Python 3.14 to PATH
+        run: echo "$(brew --prefix python@3.14)/bin" >> "$GITHUB_PATH"
 
       - name: Install virtualenv
-        run: pip install virtualenv
+        run: python3.14 -m pip install --break-system-packages virtualenv
 
-      - name: Run bootstrap script
+      - name: Prepare baseenv directory
         run: |
-          chmod +x baseenv_setup.sh
-          ./baseenv_setup.sh ${{ matrix.python-version }}
+          sudo mkdir -p /opt/python/virtualenvs
+          sudo chown "$USER" /opt/python/virtualenvs
+
+      - name: Create baseenv-3.14
+        run: bash baseenv_setup.sh 3.14
+
+      - name: Create and bootstrap test virtualenv
+        run: |
+          virtualenv --python=python3.14 /tmp/test-venv
+          VIRTUAL_ENV=/tmp/test-venv bash bootstrap_virtualenv.sh
+
+      - name: Verify package imports
+        run: |
+          /tmp/test-venv/bin/python -c "
+          import pandas, netCDF4, h5py, astropy, pyarrow, sqlalchemy, psycopg2
+          print('All imports OK')
+          "

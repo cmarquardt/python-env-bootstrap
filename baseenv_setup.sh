@@ -24,9 +24,15 @@ pip install --upgrade pip
 pip install packaging iniconfig pluggy pandas netCDF4 h5py eccodes jupyter \
     astropy pyarrow sqlalchemy
 # psycopg2 links against OpenSSL; on macOS/Homebrew libssl is not on the
-# default linker path so we pass it explicitly (harmless no-op on Linux).
-LDFLAGS="-L/opt/brew/opt/openssl@3/lib" CPPFLAGS="-I/opt/brew/opt/openssl@3/include" \
+# default linker path so we pass it explicitly (brew --prefix handles both
+# /opt/homebrew on Apple Silicon and /usr/local on Intel).
+OPENSSL_PREFIX=$(brew --prefix openssl@3 2>/dev/null || true)
+if [ -n "$OPENSSL_PREFIX" ]; then
+    LDFLAGS="-L${OPENSSL_PREFIX}/lib" CPPFLAGS="-I${OPENSSL_PREFIX}/include" \
+        pip install psycopg2
+else
     pip install psycopg2
+fi
 pip freeze > "$BASEENV_DIR/baseenv_requirements.txt"
 
 #chmod -R a-w "$BASEENV_DIR"

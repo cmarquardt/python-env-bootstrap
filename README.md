@@ -144,7 +144,7 @@ All existing and new virtualenvs will immediately have access to the updated pac
 
 > **macOS/Homebrew note**: Some C extensions that link against OpenSSL (e.g. `psycopg2`, `cryptography`) will fail with `ld: library 'ssl' not found` because Homebrew's OpenSSL is not on the system linker path. Pass the paths explicitly:
 > ```bash
-> LDFLAGS="-L/opt/brew/opt/openssl@3/lib" CPPFLAGS="-I/opt/brew/opt/openssl@3/include" pip install psycopg2
+> LDFLAGS="-L$(brew --prefix openssl@3)/lib" CPPFLAGS="-I$(brew --prefix openssl@3)/include" pip install psycopg2
 > ```
 
 ### Creating baseenv for Additional Python Versions
