@@ -7,7 +7,7 @@ if [ -z "$PYTHON_VERSION" ]; then
     exit 1
 fi
 
-PYTHON_PATH=$(which python$PYTHON_VERSION)
+PYTHON_PATH=$(which "python$PYTHON_VERSION")
 if [ -z "$PYTHON_PATH" ]; then
     echo "Python $PYTHON_VERSION not found"
     exit 1
@@ -18,10 +18,14 @@ BASEENV_DIR="/opt/python/virtualenvs/baseenv-${PYTHON_VERSION}"
 echo "Creating base environment at $BASEENV_DIR using $PYTHON_PATH"
 virtualenv --python="$PYTHON_PATH" --system-site-packages "$BASEENV_DIR"
 
+# shellcheck source=/dev/null
 source "$BASEENV_DIR/bin/activate"
 pip install --upgrade pip
-#pip install numpy pandas scipy matplotlib pillow netCDF4 h5py jupyter 
-pip install packaging iniconfig pluggy pandas netCDF4 h5py eccodes jupyter \
+#pip install numpy pandas scipy matplotlib pillow netCDF4 h5py jupyter
+# --upgrade ensures all deps are installed into the baseenv's own site-packages
+# and not silently satisfied by system packages (which aren't visible to user
+# virtualenvs that link here via .pth).
+pip install --upgrade packaging iniconfig pluggy pandas netCDF4 h5py eccodes jupyter \
     astropy pyarrow sqlalchemy
 # psycopg2 links against OpenSSL; on macOS/Homebrew libssl is not on the
 # default linker path so we pass it explicitly (brew --prefix handles both

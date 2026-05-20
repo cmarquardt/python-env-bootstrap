@@ -6,7 +6,7 @@ if [ -z "$VENV_PATH" ]; then
     exit 1
 fi
 
-PYTHON_VERSION=$($VENV_PATH/bin/python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+PYTHON_VERSION=$("$VENV_PATH"/bin/python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
 BASEENV="/opt/python/virtualenvs/baseenv-${PYTHON_VERSION}"
 SITEPKG="${BASEENV}/lib/python${PYTHON_VERSION}/site-packages"
 
